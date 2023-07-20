@@ -9,7 +9,7 @@ using Microsoft.Sbom.Api.Entities;
 using Microsoft.Sbom.Api.Executors;
 using Microsoft.Sbom.Common.Config;
 using Microsoft.Sbom.Extensions;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Sbom.Api.Providers;
 
@@ -57,10 +57,10 @@ public abstract class EntityToJsonProviderBase<T> : ISourcesProvider
         var (sources, sourceErrors) = GetSourceChannel();
         errors.Add(sourceErrors);
 
-        Log.Debug($"Splitting the workflow into {Configuration.Parallelism.Value} threads.");
+        Log.LogDebug($"Splitting the workflow into {Configuration.Parallelism.Value} threads.");
         var splitSourcesChannels = ChannelUtils.Split(sources, Configuration.Parallelism.Value);
 
-        Log.Debug("Running the generation workflow ...");
+        Log.LogDebug("Running the generation workflow ...");
 
         foreach (var sourceChannel in splitSourcesChannels)
         {

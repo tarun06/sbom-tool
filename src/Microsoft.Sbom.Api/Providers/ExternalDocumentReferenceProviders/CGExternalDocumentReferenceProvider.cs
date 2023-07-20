@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
 using Microsoft.ComponentDetection.Contracts.BcdeModels;
+using Microsoft.Extensions.Logging;
 using Microsoft.Sbom.Api.Converters;
 using Microsoft.Sbom.Api.Entities;
 using Microsoft.Sbom.Api.Exceptions;
@@ -13,7 +14,6 @@ using Microsoft.Sbom.Api.Executors;
 using Microsoft.Sbom.Api.Utils;
 using Microsoft.Sbom.Common.Config;
 using Microsoft.Sbom.Extensions;
-using Serilog;
 
 namespace Microsoft.Sbom.Api.Providers.ExternalDocumentReferenceProviders;
 
@@ -24,23 +24,22 @@ namespace Microsoft.Sbom.Api.Providers.ExternalDocumentReferenceProviders;
 public class CGExternalDocumentReferenceProvider : EntityToJsonProviderBase<ScannedComponent>
 {
     private readonly ComponentToExternalReferenceInfoConverter componentToExternalReferenceInfoConverter;
-
     private readonly ExternalDocumentReferenceWriter externalDocumentReferenceWriter;
-
     private readonly SBOMComponentsWalker sbomComponentsWalker;
-
     private readonly ExternalReferenceDeduplicator externalReferenceDeduplicator;
+    private readonly ILogger<CGExternalDocumentReferenceProvider> logger;
 
     public CGExternalDocumentReferenceProvider(
         IConfiguration configuration,
         ChannelUtils channelUtils,
-        ILogger logger,
+        ILogger<CGExternalDocumentReferenceProvider> logger,
         ComponentToExternalReferenceInfoConverter componentToExternalReferenceInfoConverter,
         ExternalDocumentReferenceWriter externalDocumentReferenceWriter,
         SBOMComponentsWalker sbomComponentsWalker,
         ExternalReferenceDeduplicator externalReferenceDeduplicator)
         : base(configuration, channelUtils, logger)
     {
+        this.logger = logger;
         this.componentToExternalReferenceInfoConverter = componentToExternalReferenceInfoConverter ?? throw new ArgumentNullException(nameof(componentToExternalReferenceInfoConverter));
         this.externalDocumentReferenceWriter = externalDocumentReferenceWriter ?? throw new ArgumentNullException(nameof(externalDocumentReferenceWriter));
         this.sbomComponentsWalker = sbomComponentsWalker ?? throw new ArgumentNullException(nameof(sbomComponentsWalker));
@@ -51,7 +50,7 @@ public class CGExternalDocumentReferenceProvider : EntityToJsonProviderBase<Scan
     {
         if (providerType == ProviderType.ExternalDocumentReference)
         {
-            Log.Debug($"Using the {nameof(CGExternalDocumentReferenceProvider)} provider for the external documents workflow.");
+            Log.LogDebug($"Using the {nameof(CGExternalDocumentReferenceProvider)} provider for the external documents workflow.");
             return true;
         }
 

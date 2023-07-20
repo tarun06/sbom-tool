@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.ComponentDetection.Common;
 using Microsoft.ComponentDetection.Contracts;
 using Microsoft.ComponentDetection.Contracts.BcdeModels;
+using Microsoft.Extensions.Logging;
 using Microsoft.Sbom.Api.Config.Extensions;
 using Microsoft.Sbom.Api.Exceptions;
 using Microsoft.Sbom.Api.Utils;
@@ -17,7 +17,6 @@ using Microsoft.Sbom.Common.Config;
 using Microsoft.Sbom.Extensions;
 using Serilog.Events;
 using Constants = Microsoft.Sbom.Api.Utils.Constants;
-using ILogger = Serilog.ILogger;
 
 namespace Microsoft.Sbom.Api.Executors;
 
@@ -26,7 +25,7 @@ namespace Microsoft.Sbom.Api.Executors;
 /// </summary>
 public abstract class ComponentDetectionBaseWalker
 {
-    private readonly ILogger log;
+    private readonly ILogger<ComponentDetectionBaseWalker> log;
     private readonly ComponentDetectorCachedExecutor componentDetector;
     private readonly IConfiguration configuration;
     private readonly ISbomConfigProvider sbomConfigs;
@@ -35,7 +34,7 @@ public abstract class ComponentDetectionBaseWalker
     private ComponentDetectionCliArgumentBuilder cliArgumentBuilder;
 
     public ComponentDetectionBaseWalker(
-        ILogger log,
+        ILogger<ComponentDetectionBaseWalker> log,
         ComponentDetectorCachedExecutor componentDetector,
         IConfiguration configuration,
         ISbomConfigProvider sbomConfigs,
@@ -52,7 +51,7 @@ public abstract class ComponentDetectionBaseWalker
     {
         if (fileSystemUtils.FileExists(buildComponentDirPath))
         {
-            log.Debug($"Scanning for packages under the root path {buildComponentDirPath}.");
+            log.LogInformation($"Scanning for packages under the root path {buildComponentDirPath}.");
         }
 
         // If the buildComponentDirPath is null or empty, make sure we have a ManifestDirPath and create a new temp directory with a random name.
@@ -121,7 +120,7 @@ public abstract class ComponentDetectionBaseWalker
             }
             catch (Exception e)
             {
-                log.Error($"Unknown error while running CD scan: {e}");
+                log.LogError($"Unknown error while running CD scan: {e}");
                 await errors.Writer.WriteAsync(new ComponentDetectorException("Unknown exception", e));
                 return;
             }

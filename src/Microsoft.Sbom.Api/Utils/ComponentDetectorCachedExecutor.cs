@@ -5,7 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.ComponentDetection.Contracts.BcdeModels;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Sbom.Api.Utils;
 
@@ -15,11 +15,11 @@ namespace Microsoft.Sbom.Api.Utils;
 /// </summary>
 public class ComponentDetectorCachedExecutor
 {
-    private readonly ILogger log;
+    private readonly ILogger<ComponentDetectorCachedExecutor> log;
     private readonly ComponentDetector detector;
     private ConcurrentDictionary<int, ScanResult> results;
 
-    public ComponentDetectorCachedExecutor(ILogger log, ComponentDetector detector)
+    public ComponentDetectorCachedExecutor(ILogger<ComponentDetectorCachedExecutor> log, ComponentDetector detector)
     {
         this.log = log ?? throw new ArgumentNullException(nameof(log));
         this.detector = detector ?? throw new ArgumentNullException(nameof(detector));
@@ -42,7 +42,7 @@ public class ComponentDetectorCachedExecutor
         var argsHashCode = string.Join(string.Empty, args).GetHashCode();
         if (results.ContainsKey(argsHashCode))
         {
-            log.Debug("Using cached CD scan result for the call with the same arguments");
+            log.LogDebug("Using cached CD scan result for the call with the same arguments");
             return results[argsHashCode];
         }
 

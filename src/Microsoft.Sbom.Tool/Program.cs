@@ -12,6 +12,7 @@ using Microsoft.Sbom.Api.Config.Args;
 using Microsoft.Sbom.Api.Config.Extensions;
 using Microsoft.Sbom.Extensions.DependencyInjection;
 using PowerArgs;
+using Serilog;
 
 namespace Microsoft.Sbom.Tool;
 
@@ -41,6 +42,10 @@ internal class Program
 
         try
         {
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console(outputTemplate: "[BOOTSTRAP] [{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+                .CreateBootstrapLogger();
+
             await Host.CreateDefaultBuilder(args)
                 .ConfigureServices((host, services) =>
                 {
@@ -53,6 +58,7 @@ internal class Program
 
                     services
                         .AddTransient<ConfigFileParser>()
+                        .ConfigureLoggingProviders()
                         .AddSingleton(typeof(IConfigurationBuilder<>), typeof(ConfigurationBuilder<>))
                         .AddSingleton(x =>
                         {

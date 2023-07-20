@@ -2,7 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Concurrent;
+using Microsoft.ComponentDetection.Common;
+using Microsoft.ComponentDetection.Orchestrator;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Sbom.Api;
 using Microsoft.Sbom.Api.Config;
 using Microsoft.Sbom.Api.Config.Extensions;
@@ -32,6 +35,7 @@ using Microsoft.Sbom.Extensions.Entities;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+using Serilog.Extensions.Logging;
 using ILogger = Serilog.ILogger;
 
 namespace Microsoft.Sbom.Extensions.DependencyInjection;
@@ -72,6 +76,9 @@ public static class ServiceCollectionExtensions
             .AddTransient<ManifestFolderFilterer>()
             .AddTransient<ChannelUtils>()
             .AddTransient<FileHasher>()
+            .AddSingleton<IFileWritingService, FileWritingService>()
+            .AddTransient<IArgumentHelper, ArgumentHelper>()
+            .AddTransient<Orchestrator>()
             .AddTransient<IHashCodeGenerator, HashCodeGenerator>()
             .AddTransient<IManifestPathConverter, SbomToolManifestPathConverter>()
             .AddTransient<ManifestGeneratorProvider>()
@@ -157,6 +164,27 @@ public static class ServiceCollectionExtensions
 
                 return manifestData;          
             }); 
+
+        return services;
+    }
+
+    public static IServiceCollection ConfigureLoggingProviders(this IServiceCollection services)
+    {
+        var providers = new LoggerProviderCollection();
+        services.AddSingleton(providers);
+        services.AddSingleton<ILoggerFactory>(sc =>
+        {
+            var providerCollection = sc.GetService<LoggerProviderCollection>();
+            var factory = new SerilogLoggerFactory(null, true, providerCollection);
+
+            foreach (var provider in sc.GetServices<ILoggerProvider>())
+            {
+                factory.AddProvider(provider);
+            }
+
+            return factory;
+        });
+        services.AddLogging(l => l.AddFilter<SerilogLoggerProvider>(null, LogLevel.Trace));
 
         return services;
     }

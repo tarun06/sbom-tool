@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using Microsoft.Sbom.Api.Converters;
 using Microsoft.Sbom.Api.Entities;
 using Microsoft.Sbom.Api.Exceptions;
@@ -12,7 +13,6 @@ using Microsoft.Sbom.Api.Executors;
 using Microsoft.Sbom.Api.Utils;
 using Microsoft.Sbom.Common.Config;
 using Microsoft.Sbom.Extensions;
-using Serilog;
 
 namespace Microsoft.Sbom.Api.Providers.FilesProviders;
 
@@ -33,7 +33,7 @@ public class CGScannedExternalDocumentReferenceFileProvider : PathBasedFileToJso
     public CGScannedExternalDocumentReferenceFileProvider(
         IConfiguration configuration,
         ChannelUtils channelUtils,
-        ILogger log, FileHasher fileHasher,
+        ILogger<CGScannedExternalDocumentReferenceFileProvider> log, FileHasher fileHasher,
         ManifestFolderFilterer fileFilterer,
         FileInfoWriter fileHashWriter,
         InternalSBOMFileInfoDeduplicator internalSBOMFileInfoDeduplicator,
@@ -53,7 +53,7 @@ public class CGScannedExternalDocumentReferenceFileProvider : PathBasedFileToJso
     {
         if (providerType == ProviderType.Files)
         {
-            Log.Debug($"Using the {nameof(CGScannedExternalDocumentReferenceFileProvider)} provider for the files workflow.");
+            Log.LogDebug($"Using the {nameof(CGScannedExternalDocumentReferenceFileProvider)} provider for the files workflow.");
             return true;
         }
 
